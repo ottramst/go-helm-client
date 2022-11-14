@@ -750,6 +750,17 @@ func (c *HelmClient) upgradeCRDV1(ctx context.Context, cl *clientset.Clientset, 
 
 // GetChart returns a chart matching the provided chart name and options.
 func (c *HelmClient) GetChart(chartName string, chartPathOptions *action.ChartPathOptions) (*chart.Chart, string, error) {
+	if c.ActionConfig.RegistryClient == nil {
+		registryClient, err := registry.NewClient(
+			registry.ClientOptDebug(c.Settings.Debug),
+			registry.ClientOptCredentialsFile(c.Settings.RegistryConfig),
+		)
+		if err != nil {
+			return nil, "", err
+		}
+		c.ActionConfig.RegistryClient = registryClient
+	}
+
 	chartPath, err := chartPathOptions.LocateChart(chartName, c.Settings)
 	if err != nil {
 		return nil, "", err
